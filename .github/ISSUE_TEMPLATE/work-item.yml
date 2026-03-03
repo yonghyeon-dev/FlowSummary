@@ -1,0 +1,67 @@
+name: "Work Item (WI)"
+description: "기능, 버그, 작업 단위를 등록합니다"
+title: "[{type}] "
+labels: []
+body:
+  - type: dropdown
+    id: wi-type
+    attributes:
+      label: "WI Type"
+      options:
+        - feat
+        - fix
+        - chore
+        - docs
+        - refactor
+        - test
+    validations:
+      required: true
+
+  - type: dropdown
+    id: wi-priority
+    attributes:
+      label: "Priority"
+      options:
+        - P0 (필수, 즉시)
+        - P1 (중요, 이번 스프린트)
+        - P2 (개선, 다음 스프린트)
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "설명"
+      description: "무엇을, 왜 해야 하는지"
+      placeholder: "사용자가 ~ 할 수 있도록 ~ 기능을 구현한다"
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: "수용 기준"
+      description: "완료 조건 (체크리스트)"
+      value: |
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+
+  - type: input
+    id: spec-ref
+    attributes:
+      label: "스펙 참조 (선택)"
+      description: "관련 기능 요구사항 ID"
+      placeholder: "FR-AUTH-001"
+    validations:
+      required: false
+
+  - type: textarea
+    id: follow-up
+    attributes:
+      label: "후속 작업 (Follow-up)"
+      description: "이 WI 완료 후 필요한 추가 작업"
+      placeholder: "WI-00002에서 후속 처리 필요"
+    validations:
+      required: false

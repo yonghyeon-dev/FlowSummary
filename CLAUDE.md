@@ -17,6 +17,7 @@
 | `pipeline.md` | 비동기 파이프라인 절대 규칙 + 흐름 |
 | `security.md` | 인증, 권한 검사, 금지 패턴 |
 | `code-quality.md` | 컴포넌트 재사용, 하드코딩 금지, UTF-8 |
+| `workflow.md` | WI 관리, 브랜치 컨벤션, RALF Loop, CI 게이트 |
 
 ## 작업 전 체크리스트
 - [ ] 경계 분리: "이 코드의 경계는 무엇인가?" 정의

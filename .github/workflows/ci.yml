@@ -1,0 +1,76 @@
+name: CI Quality Gate
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Gate 1: TypeScript
+      - name: "Gate 1: Type Check"
+        run: npx tsc --noEmit
+
+      # Gate 2: Lint
+      - name: "Gate 2: Lint"
+        run: npx next lint
+
+      # Gate 3: Prisma
+      - name: "Gate 3: Prisma Validate"
+        run: npx prisma validate
+        if: hashFiles('prisma/schema.prisma') != ''
+
+      - name: "Gate 3: Prisma Generate"
+        run: npx prisma generate
+        if: hashFiles('prisma/schema.prisma') != ''
+
+      # Gate 4: Test
+      - name: "Gate 4: Test"
+        run: npm test -- --passWithNoTests
+        if: hashFiles('**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx') != ''
+
+      # Gate 5: Build
+      - name: "Gate 5: Build"
+        run: npx next build
+        env:
+          SKIP_ENV_VALIDATION: true
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
