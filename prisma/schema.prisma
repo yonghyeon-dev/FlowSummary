@@ -1,0 +1,286 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Enums ──────────────────────────────────────────────
+
+enum MembershipRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum MeetingStatus {
+  UPLOADED
+  PROCESSING
+  REVIEW_NEEDED
+  PUBLISHED
+  ARCHIVED
+  FAILED
+}
+
+enum ActionItemStatus {
+  EXTRACTED
+  CONFIRMED
+  IN_PROGRESS
+  DONE
+  OVERDUE
+  CANCELED
+}
+
+enum NotificationType {
+  ASSIGNMENT
+  REMINDER
+  OVERDUE
+  WEEKLY_SUMMARY
+}
+
+enum ActionItemPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+// ─── Models ─────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  name      String?
+  avatarUrl String?  @map("avatar_url")
+  timezone  String   @default("Asia/Seoul")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  memberships     Membership[]
+  createdMeetings Meeting[]          @relation("MeetingCreator")
+  assignedItems   ActionItem[]       @relation("AssigneeItems")
+  actionHistories ActionItemHistory[]
+  notifications   NotificationLog[]
+  auditLogs       AuditLog[]
+
+  @@map("users")
+}
+
+model Workspace {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String   @unique
+  plan      String   @default("free")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  memberships  Membership[]
+  meetings     Meeting[]
+  actionItems  ActionItem[]
+  usageLedgers UsageLedger[]
+  integrations Integration[]
+  auditLogs    AuditLog[]
+
+  @@map("workspaces")
+}
+
+model Membership {
+  id        String         @id @default(uuid()) @db.Uuid
+  userId    String         @map("user_id") @db.Uuid
+  workspaceId String       @map("workspace_id") @db.Uuid
+  role      MembershipRole @default(MEMBER)
+  aliases   String[]       @default([])
+  isActive  Boolean        @default(true) @map("is_active")
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+  @@map("memberships")
+}
+
+model Meeting {
+  id            String        @id @default(uuid()) @db.Uuid
+  workspaceId   String        @map("workspace_id") @db.Uuid
+  creatorUserId String        @map("creator_user_id") @db.Uuid
+  title         String
+  meetingDate   DateTime      @map("meeting_date") @db.Date
+  status        MeetingStatus @default(UPLOADED)
+  participants  String[]      @default([])
+  isTextPaste   Boolean       @default(false) @map("is_text_paste")
+  errorMessage  String?       @map("error_message")
+  retryCount    Int           @default(0) @map("retry_count")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  workspace  Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creator    User               @relation("MeetingCreator", fields: [creatorUserId], references: [id])
+  assets     MeetingAsset[]
+  segments   TranscriptSegment[]
+  summaries  MeetingSummary[]
+  actionItems ActionItem[]
+
+  @@index([workspaceId, meetingDate])
+  @@map("meetings")
+}
+
+model MeetingAsset {
+  id           String   @id @default(uuid()) @db.Uuid
+  meetingId    String   @map("meeting_id") @db.Uuid
+  storagePath  String   @map("storage_path")
+  fileName     String   @map("file_name")
+  mimeType     String   @map("mime_type")
+  fileSize     BigInt   @map("file_size")
+  fileHash     String?  @map("file_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@map("meeting_assets")
+}
+
+model TranscriptSegment {
+  id           String   @id @default(uuid()) @db.Uuid
+  meetingId    String   @map("meeting_id") @db.Uuid
+  speakerLabel String   @map("speaker_label")
+  speakerName  String?  @map("speaker_name")
+  text         String
+  startTime    Float    @map("start_time")
+  endTime      Float    @map("end_time")
+  confidence   Float    @default(0)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@index([meetingId, startTime])
+  @@map("transcript_segments")
+}
+
+model MeetingSummary {
+  id              String   @id @default(uuid()) @db.Uuid
+  meetingId       String   @map("meeting_id") @db.Uuid
+  summary         String
+  keyDecisions    Json?    @map("key_decisions")
+  modelId         String   @map("model_id")
+  modelVersion    String?  @map("model_version")
+  promptVersion   String?  @map("prompt_version")
+  rawModelOutput  Json?    @map("raw_model_output")
+  version         Int      @default(1)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@map("meeting_summaries")
+}
+
+model ActionItem {
+  id              String             @id @default(uuid()) @db.Uuid
+  meetingId       String             @map("meeting_id") @db.Uuid
+  workspaceId     String             @map("workspace_id") @db.Uuid
+  assigneeUserId  String?            @map("assignee_user_id") @db.Uuid
+  title           String
+  description     String?
+  status          ActionItemStatus   @default(EXTRACTED)
+  priority        ActionItemPriority @default(MEDIUM)
+  dueDate         DateTime?          @map("due_date") @db.Date
+  dueDateRaw      String?            @map("due_date_raw")
+  confidence      Float              @default(0)
+  sourceText      String?            @map("source_text")
+  completedAt     DateTime?          @map("completed_at")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+
+  meeting   Meeting              @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  workspace Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  assignee  User?                @relation("AssigneeItems", fields: [assigneeUserId], references: [id])
+  histories ActionItemHistory[]
+  notifications NotificationLog[]
+
+  @@index([workspaceId, status])
+  @@index([assigneeUserId, status])
+  @@map("action_items")
+}
+
+model ActionItemHistory {
+  id           String   @id @default(uuid()) @db.Uuid
+  actionItemId String   @map("action_item_id") @db.Uuid
+  changedBy    String   @map("changed_by") @db.Uuid
+  field        String
+  oldValue     String?  @map("old_value")
+  newValue     String?  @map("new_value")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  actionItem ActionItem @relation(fields: [actionItemId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [changedBy], references: [id])
+
+  @@map("action_item_histories")
+}
+
+model NotificationLog {
+  id           String           @id @default(uuid()) @db.Uuid
+  userId       String           @map("user_id") @db.Uuid
+  actionItemId String?          @map("action_item_id") @db.Uuid
+  type         NotificationType
+  channel      String           @default("email")
+  scheduledAt  DateTime         @map("scheduled_at")
+  sentAt       DateTime?        @map("sent_at")
+  sent         Boolean          @default(false)
+  errorMessage String?          @map("error_message")
+  createdAt    DateTime         @default(now()) @map("created_at")
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  actionItem ActionItem? @relation(fields: [actionItemId], references: [id], onDelete: SetNull)
+
+  @@index([scheduledAt, sent])
+  @@map("notification_logs")
+}
+
+model UsageLedger {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  period      String
+  seatCount   Int      @map("seat_count")
+  minutesUsed Float    @map("minutes_used")
+  meetingCount Int     @map("meeting_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, period])
+  @@map("usage_ledgers")
+}
+
+model Integration {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  type        String
+  config      Json     @default("{}")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, type])
+  @@map("integrations")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  action      String
+  entity      String
+  entityId    String?  @map("entity_id") @db.Uuid
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
