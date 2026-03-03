@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { NotificationType } from "@prisma/client";
 import { tasks } from "@trigger.dev/sdk/v3";
 import type { sendReminder } from "@/trigger/remind";
+import { toUtcFromTimezone } from "./timezone";
 
 export async function scheduleAssignmentNotifications(meetingId: string) {
   const actionItems = await prisma.actionItem.findMany({
@@ -45,33 +46,40 @@ export async function scheduleReminderNotifications(
   dueDate: Date
 ) {
   const now = new Date();
-  const schedules: { type: NotificationType; scheduledAt: Date }[] = [];
 
-  // 마감 전일 오전 9시 (사용자 시간대는 추후 반영, 현재 KST 기준)
+  // 사용자 시간대 조회
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { timezone: true },
+  });
+  const timezone = user?.timezone ?? "Asia/Seoul";
+
+  const scheduleList: { type: NotificationType; scheduledAt: Date }[] = [];
+
+  // 마감 전일 오전 9시 (사용자 시간대)
   const dayBefore = new Date(dueDate);
   dayBefore.setDate(dayBefore.getDate() - 1);
-  dayBefore.setHours(0, 0, 0, 0); // UTC 00:00 = KST 09:00
-  if (dayBefore > now) {
-    schedules.push({
+  const dayBeforeUtc = toUtcFromTimezone(dayBefore, 9, timezone);
+  if (dayBeforeUtc > now) {
+    scheduleList.push({
       type: NotificationType.REMINDER,
-      scheduledAt: dayBefore,
+      scheduledAt: dayBeforeUtc,
     });
   }
 
-  // 마감 당일 오전 9시
-  const dueDay = new Date(dueDate);
-  dueDay.setHours(0, 0, 0, 0);
-  if (dueDay > now) {
-    schedules.push({
+  // 마감 당일 오전 9시 (사용자 시간대)
+  const dueDayUtc = toUtcFromTimezone(new Date(dueDate), 9, timezone);
+  if (dueDayUtc > now) {
+    scheduleList.push({
       type: NotificationType.REMINDER,
-      scheduledAt: dueDay,
+      scheduledAt: dueDayUtc,
     });
   }
 
-  if (schedules.length === 0) return [];
+  if (scheduleList.length === 0) return [];
 
   return prisma.notificationLog.createMany({
-    data: schedules.map((s) => ({
+    data: scheduleList.map((s) => ({
       userId,
       actionItemId,
       type: s.type,

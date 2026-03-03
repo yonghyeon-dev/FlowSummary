@@ -24,23 +24,38 @@ const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secon
 
 export default async function MeetingsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ workspaceId: string }>;
+  searchParams: Promise<{ archived?: string }>;
 }) {
   const { workspaceId } = await params;
+  const { archived } = await searchParams;
+  const showArchived = archived === "true";
   const user = await requireUser();
   await requireWorkspaceMembership(user.id, workspaceId);
-  const meetings = await getMeetingsByWorkspace(workspaceId);
+  const meetings = await getMeetingsByWorkspace(workspaceId, {
+    includeArchived: showArchived,
+  });
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">회의</h1>
-        <Button asChild>
-          <Link href={`/workspaces/${workspaceId}/meetings/new`}>
-            새 회의
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <Link
+              href={`/workspaces/${workspaceId}/meetings${showArchived ? "" : "?archived=true"}`}
+            >
+              {showArchived ? "활성 보기" : "보관함 보기"}
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href={`/workspaces/${workspaceId}/meetings/new`}>
+              새 회의
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {meetings.length === 0 ? (

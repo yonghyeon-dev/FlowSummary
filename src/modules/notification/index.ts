@@ -3,6 +3,7 @@ export {
   scheduleReminderNotifications,
   scheduleOverdueReminders,
 } from "./internal/actions";
+export { toUtcFromTimezone } from "./internal/timezone";
 export {
   getPendingNotifications,
   getNotificationsByUser,

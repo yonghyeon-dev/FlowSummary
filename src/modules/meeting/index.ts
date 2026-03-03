@@ -8,6 +8,7 @@ export {
   getMeetingDetail,
 } from "./internal/queries";
 export {
+  isValidTransition,
   transitionMeetingStatus,
   VALID_TRANSITIONS,
 } from "./internal/state-machine";
