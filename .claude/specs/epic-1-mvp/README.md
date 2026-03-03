@@ -67,4 +67,4 @@ extracted → confirmed → in_progress → done
 - [x] Phase 2: 회의 업로드 & 전사 파이프라인
 - [x] Phase 3: AI 요약 & 액션아이템 검수
 - [x] Phase 4: 알림 & 대시보드
-- [ ] Phase 5: 운영 기능 & 베타
+- [x] Phase 5: 운영 기능 & 베타

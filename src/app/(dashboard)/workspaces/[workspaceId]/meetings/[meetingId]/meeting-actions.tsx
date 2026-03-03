@@ -21,7 +21,7 @@ export function MeetingActions({
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleAction(action: "summarize" | "publish" | "retry") {
+  async function handleAction(action: "summarize" | "publish" | "retry" | "archive") {
     setLoading(action);
     setError(null);
 
@@ -63,6 +63,17 @@ export function MeetingActions({
           disabled={loading !== null}
         >
           {loading === "publish" ? "게시 중..." : "게시"}
+        </Button>
+      )}
+
+      {/* 보관 버튼: 게시됨 상태 */}
+      {status === "PUBLISHED" && (
+        <Button
+          variant="outline"
+          onClick={() => handleAction("archive")}
+          disabled={loading !== null}
+        >
+          {loading === "archive" ? "보관 중..." : "보관"}
         </Button>
       )}
 

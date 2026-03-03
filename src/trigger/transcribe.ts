@@ -4,7 +4,7 @@ import { MeetingStatus } from "@prisma/client";
 import {
   isValidTransition,
   transitionMeetingStatus,
-} from "@/modules/meeting/internal/state-machine";
+} from "@/modules/meeting";
 
 const VITO_API_BASE = "https://openapi.vito.ai";
 
