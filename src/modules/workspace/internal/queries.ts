@@ -29,13 +29,12 @@ export async function getWorkspaceWithMembers(workspaceId: string) {
     where: { id: workspaceId },
     include: {
       memberships: {
-        where: { isActive: true },
         include: {
           user: {
             select: { id: true, email: true, name: true, avatarUrl: true },
           },
         },
-        orderBy: { createdAt: "asc" },
+        orderBy: [{ isActive: "desc" }, { createdAt: "asc" }],
       },
     },
   });

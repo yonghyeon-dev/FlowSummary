@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Link from "next/link";
+import { WeeklyChart } from "./weekly-chart";
 
 const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   UPLOADED: { label: "업로드됨", variant: "outline" },
@@ -71,6 +72,34 @@ export default async function WorkspaceDashboardPage({
               {stats.doneCount}
             </CardTitle>
           </CardHeader>
+        </Card>
+      </div>
+
+      {/* 주간 차트 */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">주간 회의 추이</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <WeeklyChart
+              title=""
+              data={stats.weeklyMeetingCounts}
+              color="bg-primary"
+            />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">주간 작업 완료 추이</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <WeeklyChart
+              title=""
+              data={stats.weeklyDoneCounts}
+              color="bg-green-500"
+            />
+          </CardContent>
         </Card>
       </div>
 

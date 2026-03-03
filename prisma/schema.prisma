@@ -54,8 +54,9 @@ model User {
   email     String   @unique
   name      String?
   avatarUrl String?  @map("avatar_url")
-  timezone  String   @default("Asia/Seoul")
-  createdAt DateTime @default(now()) @map("created_at")
+  timezone             String   @default("Asia/Seoul")
+  notificationEnabled  Boolean  @default(true) @map("notification_enabled")
+  createdAt            DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   memberships     Membership[]

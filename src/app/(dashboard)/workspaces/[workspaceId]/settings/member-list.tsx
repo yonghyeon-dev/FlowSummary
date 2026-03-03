@@ -33,6 +33,7 @@ interface MemberInfo {
   avatarUrl: string | null;
   role: MembershipRole;
   aliases: string[];
+  isActive: boolean;
 }
 
 interface MemberListProps {
@@ -133,10 +134,17 @@ function MemberRow({
   return (
     <TableRow>
       <TableCell className="font-medium">
-        {member.name ?? "-"}
+        <span className={!member.isActive ? "text-muted-foreground" : ""}>
+          {member.name ?? "-"}
+        </span>
         {isMe && (
           <Badge variant="outline" className="ml-2">
             나
+          </Badge>
+        )}
+        {!member.isActive && (
+          <Badge variant="secondary" className="ml-2 text-xs">
+            비활성
           </Badge>
         )}
       </TableCell>
@@ -194,7 +202,7 @@ function MemberRow({
       </TableCell>
       {canManage && (
         <TableCell>
-          {!isMe && member.role !== MembershipRole.OWNER && (
+          {!isMe && member.isActive && member.role !== MembershipRole.OWNER && (
             <Button variant="ghost" size="sm" onClick={handleRemove}>
               제거
             </Button>
