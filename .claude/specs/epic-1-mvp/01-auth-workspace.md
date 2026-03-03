@@ -53,6 +53,10 @@
 ### WI-#13: 비활성 멤버 보관 처리 (P1) — FR-WS-005
 - 멤버 비활성화 (is_active=false)
 - 기존 작업 유지, UI에 '비활성 멤버' 표시
+- **구현**: `MemberRow` 컴포넌트에서 `isActive: boolean` 체크
+  - 비활성 멤버: `text-muted-foreground` 텍스트 + "비활성" 배지 표시
+  - 비활성 멤버 제거 버튼 비활성화
+- **파일**: MOD `src/app/(dashboard)/workspaces/[workspaceId]/settings/member-list.tsx`
 
 ## Phase 완료 기준
 - [ ] 이메일 가입/로그인 동작

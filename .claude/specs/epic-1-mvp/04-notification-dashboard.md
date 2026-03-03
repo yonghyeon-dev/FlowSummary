@@ -34,22 +34,45 @@
 - **완료 기준**: 알림 스케줄링/조회 API 동작
 
 ### WI-#40: 이메일 템플릿 (P1) — FR-NTF-004
-- 할 일 배정 알림 템플릿
-- 마감 리마인드 템플릿
-- overdue 알림 템플릿
+- 3종 인라인 스타일 HTML 템플릿 (React Email 미사용):
+  - `assignmentEmailHtml({ userName, meetingTitle, actionItemTitle, dueDate, meetingUrl })` — 할 일 배정
+  - `reminderEmailHtml({ ..., isOverdue, badgeColor })` — 마감 리마인드/지연
+  - `weeklySummaryEmailHtml({ ..., items[], overdueCount, inProgressCount })` — 주간 요약
+- 공통 헤더/푸터 (`wrapEmail()`)
+- **파일**: MOD `src/modules/notification/internal/email-templates.ts`
 - **완료 기준**: 3종 이메일 템플릿 (HTML)
 
 ### WI-#41: 주간 미완료 요약 (P1) — FR-NTF-005
-- 매주 월요일 Admin에게 주간 미완료 액션아이템 요약 이메일
+- Trigger.dev `weekly-summary` schedules.task (cron `0 0 * * 1`, 매주 월요일 00:00 UTC)
+- 모든 워크스페이스 순회 → 미완료 ActionItem 조회 (OVERDUE/CONFIRMED/IN_PROGRESS)
+- Admin/Owner(isActive=true)에게 `weeklySummaryEmailHtml()` 이메일 발송 (Resend)
+- NotificationLog 기록 (type: WEEKLY_SUMMARY, sent/sentAt 또는 errorMessage)
+- 반환: `{ sentCount }`
+- **스키마**: `NotificationType` enum에 `WEEKLY_SUMMARY` 추가
+- **파일**: NEW `src/trigger/weekly-summary.ts`
 - **완료 기준**: 주간 요약 이메일 스케줄 + 발송
 
 ### WI-#42: 개인 알림 설정 (P1) — FR-NTF-006
-- 사용자별 알림 수신 설정 (on/off)
+- `UserSettings` 클라이언트 컴포넌트: 시간대 드롭다운 (8개 옵션) + 알림 토글 (Switch)
+- API: `GET/PATCH /api/v1/user/settings` — `{ timezone, notificationEnabled }`
+- **스키마**: `User.timezone String @default("Asia/Seoul")`, `User.notificationEnabled Boolean @default(true)`
+- **파일**:
+  - NEW: `src/app/(dashboard)/workspaces/[workspaceId]/settings/user-settings.tsx`
+  - NEW: `src/app/api/v1/user/settings/route.ts`
+  - NEW: `src/components/ui/switch.tsx` (shadcn)
 - **완료 기준**: 알림 설정 UI + 반영
 
 ### WI-#43: 대시보드 차트 (P1) — FR-DASH-002
-- 주간 회의 수 추이
-- 액션아이템 완료율 추이
+- `WeeklyChart` 컴포넌트: 바 차트 (최근 8주, `{ week, count }[]`)
+- `getDashboardStats(workspaceId)` — 병렬 조회 (Promise.all):
+  - 주간 회의 추이 (createdAt 기준, 8주)
+  - 주간 완료 추이 (ActionItem.completedAt 기준, 8주)
+- `getWeeklyCounts(dates)` — 월요일 기준 주간 집계
+- **스키마**: `ActionItem.completedAt DateTime? @map("completed_at")`
+- **파일**:
+  - NEW: `src/app/(dashboard)/workspaces/[workspaceId]/dashboard/weekly-chart.tsx`
+  - MOD: `src/app/(dashboard)/workspaces/[workspaceId]/dashboard/page.tsx`
+  - MOD: `src/modules/dashboard/internal/queries.ts`
 - **완료 기준**: 차트 컴포넌트 표시
 
 ## Phase 완료 기준

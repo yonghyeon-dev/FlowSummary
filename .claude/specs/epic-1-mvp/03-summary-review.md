@@ -66,10 +66,17 @@
 - **완료 기준**: API 통해 요약/게시 호출 가능
 
 ### WI-#34: 내 할 일 페이지 (P1)
-- `/workspaces/[id]/my-tasks` 페이지 구현
-- 로그인 사용자의 ActionItem 목록
-- 상태별 필터/정렬
-- **완료 기준**: 개인 할 일 목록 확인 가능
+- `/workspaces/[id]/tasks` 페이지 구현 (서버 컴포넌트 + 클라이언트 TaskList)
+- `getActionItemsByUser(userId, workspaceId)` — assigneeUserId 기준 조회 (CANCELED 제외)
+- `TaskList` 클라이언트 컴포넌트:
+  - 상태 필터 6종 (전체, EXTRACTED, CONFIRMED, IN_PROGRESS, OVERDUE, DONE)
+  - "진행 중" / "완료" 두 섹션 분리
+  - `handleStatusChange()` → 상태 전이 (EXTRACTED→CONFIRMED→IN_PROGRESS→DONE, OVERDUE→IN_PROGRESS)
+  - 마감일 초과 항목 `text-destructive` 강조
+- **파일**:
+  - NEW: `src/app/(dashboard)/workspaces/[workspaceId]/tasks/task-list.tsx`
+  - MOD: `src/app/(dashboard)/workspaces/[workspaceId]/tasks/page.tsx`
+- **완료 기준**: 개인 할 일 목록 확인 + 상태 필터 + 상태 변경 가능
 
 ## Phase 완료 기준
 - [x] Claude API 요약 Job 동작 (API 키 없어도 빌드 가능)

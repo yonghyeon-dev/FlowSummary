@@ -44,7 +44,21 @@
 - **완료 기준**: 상태 전이 단위 테스트 통과
 
 ### WI-#20: 중복 업로드 감지 (P1) — FR-MTG-005
+- 클라이언트에서 파일 SHA-256 해시 계산 (`crypto.subtle.digest`)
+- FormData에 `fileHash` 포함 → 서버에서 동일 `fileHash + meetingDate` 조합 검사
+- 중복 시 에러 반환
+- **스키마**: `MeetingAsset.fileHash String? @map("file_hash")`
+- **파일**:
+  - MOD: `src/app/(dashboard)/workspaces/[workspaceId]/meetings/new/meeting-form.tsx`
+  - MOD: `src/modules/meeting/internal/queries.ts`
+
 ### WI-#21: 참석자 후보-화자 매칭 (P1) — FR-AI-006
+- `matchSpeakersToParticipants(utterances, participants)` 함수
+- VITO API 화자 분리 결과에서 고유 speaker 라벨 추출 (등장 순서 유지)
+- speaker 수 == participant 수일 때만 순서대로 매칭, 그 외 자동 확정 안 함
+- 매칭 결과를 `TranscriptSegment.speakerName`에 저장
+- **스키마**: `TranscriptSegment.speakerName String? @map("speaker_name")`
+- **파일**: MOD `src/trigger/transcribe.ts`
 
 ## Phase 완료 기준
 - [ ] 파일 업로드 → Meeting/MeetingAsset 생성
