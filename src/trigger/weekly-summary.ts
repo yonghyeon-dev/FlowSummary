@@ -1,6 +1,6 @@
 import { schedules } from "@trigger.dev/sdk/v3";
 import { prisma } from "@/lib/prisma";
-import { resend, EMAIL_FROM } from "@/lib/resend";
+import { getResend, EMAIL_FROM } from "@/lib/resend";
 import { weeklySummaryEmailHtml } from "@/modules/notification";
 import {
   ActionItemStatus,
@@ -86,7 +86,7 @@ export const weeklySummary = schedules.task({
         });
 
         try {
-          await resend.emails.send({
+          await getResend().emails.send({
             from: EMAIL_FROM,
             to: member.user.email,
             subject: `[FlowSummary] ${workspace.name} 주간 미완료 작업 요약`,

@@ -1,6 +1,6 @@
 import { task } from "@trigger.dev/sdk/v3";
 import { prisma } from "@/lib/prisma";
-import { resend, EMAIL_FROM } from "@/lib/resend";
+import { getResend, EMAIL_FROM } from "@/lib/resend";
 import { NotificationType } from "@prisma/client";
 import {
   assignmentEmailHtml,
@@ -117,7 +117,7 @@ export const sendReminder = task({
 
     // 3. Resend로 이메일 발송
     try {
-      await resend.emails.send({
+      await getResend().emails.send({
         from: EMAIL_FROM,
         to: user.email,
         subject,

@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@trigger.dev/build": "^3.3.17",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
