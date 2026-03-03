@@ -21,7 +21,7 @@ export async function getMeetingDetail(meetingId: string) {
       summaries: { orderBy: { version: "desc" }, take: 1 },
       actionItems: {
         include: {
-          assignee: { select: { name: true, email: true } },
+          assignee: { select: { id: true, name: true, email: true } },
         },
         orderBy: { createdAt: "asc" },
       },
