@@ -1,11 +1,26 @@
-import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
+import { getUser } from "@/modules/auth";
+import { logout } from "@/modules/auth";
+import { Button } from "@/components/ui/button";
 
-export function Header() {
+export async function Header() {
+  const user = await getUser();
+
   return (
-    <header className="flex h-14 items-center gap-4 border-b px-6">
-      <h1 className="text-lg font-semibold">FlowSummary</h1>
-      <Separator orientation="vertical" className="h-6" />
-      {/* TODO: 워크스페이스 선택, 사용자 메뉴 */}
+    <header className="flex h-14 items-center justify-between border-b px-6">
+      <Link href="/workspaces" className="text-lg font-semibold">
+        FlowSummary
+      </Link>
+      {user && (
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-muted-foreground">{user.email}</span>
+          <form action={logout}>
+            <Button variant="ghost" size="sm" type="submit">
+              로그아웃
+            </Button>
+          </form>
+        </div>
+      )}
     </header>
   );
 }
