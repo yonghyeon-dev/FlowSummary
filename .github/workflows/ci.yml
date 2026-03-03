@@ -49,10 +49,9 @@ jobs:
           DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
           DIRECT_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
 
-      # Gate 4: Test (테스트 파일이 있을 때만 실행)
+      # Gate 4: Test
       - name: "Gate 4: Test"
-        run: npm test -- --passWithNoTests
-        if: ${{ hashFiles('**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx') != '' }}
+        run: npm test --if-present
 
       # Gate 5: Build
       - name: "Gate 5: Build"
