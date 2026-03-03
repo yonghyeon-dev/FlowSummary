@@ -39,6 +39,8 @@ prisma/*.db
 # claude memory (session-specific)
 .claude/memory/logs/
 .claude/settings.local.json
+.claude/.qa-ran
+.claude/.doc-ran
 
 # IDE
 .vscode/
