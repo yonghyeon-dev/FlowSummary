@@ -26,15 +26,15 @@
 - 2026-03-03: Supabase 프로젝트 ref: `rnndkgiekrxcavatcqmh` (ap-south-1)
 
 ## Current State
-- **Phase**: Phase 3 완료 → Phase 4 (알림 & 대시보드) 진입 예정
-- **완료**: Phase 0~3 (부트스트랩 + 인증/워크스페이스 + 업로드/전사 + AI 요약/검수)
-- **Next**: Phase 4 WI 생성 → Resend 이메일, 리마인드, 대시보드 구현
-- **Branch**: `main` (PR #6, #15, #24, #35 모두 머지 완료)
-- **누적 테스트**: 60개 (slugify 9 + meeting-state 13 + constants 11 + action-item-state 17 + parseDueDate 10)
-- **GitHub Issues**: #1~#34 생성, #1~#12 + #16~#21 + #25~#33 closed
+- **Phase**: Phase 4 완료 → Phase 5 (운영 기능 & 베타) 진입 예정
+- **완료**: Phase 0~4 (부트스트랩 + 인증/워크스페이스 + 업로드/전사 + AI 요약/검수 + 알림/대시보드)
+- **Next**: PR #45 머지 → Phase 5 WI 생성 → 운영 기능, 베타 준비
+- **Branch**: `feat/WI-35-phase4-notification-dashboard` (PR #45 CI 통과, 머지 대기)
+- **누적 테스트**: 67개 (+7: notification 7)
+- **GitHub Issues**: #1~#44 생성, #1~#12 + #16~#21 + #25~#33 closed, #36~#44 PR 머지 시 close 예정
 
 ## Active Epics
-- Epic 1: FlowSummary MVP — Phase 0~3 완료, Phase 4~5 대기
+- Epic 1: FlowSummary MVP — Phase 0~4 완료, Phase 5 대기
 
 ---
 *Last updated: 2026-03-03*

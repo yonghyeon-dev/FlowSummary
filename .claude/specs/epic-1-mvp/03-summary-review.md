@@ -72,9 +72,11 @@
 - **완료 기준**: 개인 할 일 목록 확인 가능
 
 ## Phase 완료 기준
-- [ ] Claude API 요약 Job 동작 (API 키 없어도 빌드 가능)
-- [ ] ActionItem 상태 머신 단위 테스트 통과
-- [ ] 요약 + 액션아이템 검수 UI 동작
-- [ ] 게시 플로우 (REVIEW_NEEDED → PUBLISHED)
-- [ ] 재처리 플로우 (FAILED → PROCESSING)
-- [ ] CI 5-Gate 통과
+- [x] Claude API 요약 Job 동작 (API 키 없어도 빌드 가능)
+- [x] ActionItem 상태 머신 단위 테스트 통과
+- [x] 요약 + 액션아이템 검수 UI 동작
+- [x] 게시 플로우 (REVIEW_NEEDED → PUBLISHED)
+- [x] 재처리 플로우 (FAILED → PROCESSING)
+- [x] CI 5-Gate 통과
+
+**완료**: PR #35 머지 (2026-03-03), 테스트 60개 통과
