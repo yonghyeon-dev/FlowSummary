@@ -26,7 +26,7 @@ export function isValidTransition(
 }
 
 export async function transitionMeetingStatus(
-  prisma: { meeting: { update: Function } },
+  prisma: { meeting: { update: (args: { where: { id: string }; data: Record<string, unknown> }) => Promise<unknown> } },
   meetingId: string,
   currentStatus: MeetingStatus,
   newStatus: MeetingStatus,
