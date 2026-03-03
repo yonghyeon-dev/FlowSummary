@@ -12,7 +12,7 @@ interface SidebarProps {
 const NAV_ITEMS = [
   { label: "대시보드", path: "dashboard" },
   { label: "회의", path: "meetings" },
-  { label: "작업", path: "tasks" },
+  { label: "내 할 일", path: "tasks" },
   { label: "설정", path: "settings" },
 ];
 
