@@ -19,7 +19,7 @@ export const sendReminder = task({
     const notification = await prisma.notificationLog.findUnique({
       where: { id: notificationLogId },
       include: {
-        user: { select: { email: true, name: true } },
+        user: { select: { email: true, name: true, notificationEnabled: true } },
         actionItem: {
           select: {
             id: true,
@@ -43,6 +43,15 @@ export const sendReminder = task({
 
     if (notification.sent) {
       return { notificationLogId, status: "already_sent" };
+    }
+
+    // 사용자가 알림을 비활성화한 경우 스킵
+    if (!notification.user.notificationEnabled) {
+      await prisma.notificationLog.update({
+        where: { id: notificationLogId },
+        data: { sent: true, sentAt: new Date(), errorMessage: "Notification disabled by user" },
+      });
+      return { notificationLogId, status: "skipped_disabled" };
     }
 
     const { user, actionItem } = notification;

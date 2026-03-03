@@ -93,6 +93,34 @@ export async function loginWithGoogle() {
   redirect(data.url);
 }
 
+export async function updateUserSettings(
+  userId: string,
+  data: { timezone?: string; notificationEnabled?: boolean }
+) {
+  const updateData: Record<string, unknown> = {};
+  if (data.timezone !== undefined) updateData.timezone = data.timezone;
+  if (data.notificationEnabled !== undefined)
+    updateData.notificationEnabled = data.notificationEnabled;
+
+  return prisma.user.update({
+    where: { id: userId },
+    data: updateData,
+  });
+}
+
+export async function getUserProfile(userId: string) {
+  return prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      timezone: true,
+      notificationEnabled: true,
+    },
+  });
+}
+
 export async function logout() {
   const supabase = await createClient();
   await supabase.auth.signOut();

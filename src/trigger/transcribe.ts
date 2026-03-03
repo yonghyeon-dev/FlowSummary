@@ -134,11 +134,18 @@ export const transcribeMeeting = task({
       // 4. 결과 폴링
       const utterances = await pollTranscription(token, transcribeId);
 
-      // 5. TranscriptSegment 저장
+      // 5. 참석자-화자 매칭 시도
+      const speakerNameMap = matchSpeakersToParticipants(
+        utterances,
+        meeting.participants
+      );
+
+      // 6. TranscriptSegment 저장
       await prisma.transcriptSegment.createMany({
         data: utterances.map((u) => ({
           meetingId,
           speakerLabel: u.spk.label,
+          speakerName: speakerNameMap.get(u.spk.label) ?? null,
           text: u.text,
           startTime: u.start / 1000, // ms → seconds
           endTime: u.end / 1000,
@@ -146,7 +153,7 @@ export const transcribeMeeting = task({
         })),
       });
 
-      // 6. 상태 → REVIEW_NEEDED
+      // 7. 상태 → REVIEW_NEEDED
       await transitionMeetingStatus(
         prisma,
         meetingId,
@@ -176,3 +183,33 @@ export const transcribeMeeting = task({
     }
   },
 });
+
+/**
+ * 화자 라벨과 참석자 이름 매칭
+ * - speaker 수와 participant 수가 같으면 순서대로 매칭 (후보 추천)
+ * - 그 외에는 매칭하지 않음 (자동 확정 안 함)
+ */
+function matchSpeakersToParticipants(
+  utterances: VitoSegment[],
+  participants: string[]
+): Map<string, string> {
+  const map = new Map<string, string>();
+  if (participants.length === 0) return map;
+
+  // 고유 speaker 라벨 추출 (등장 순서 유지)
+  const speakerLabels: string[] = [];
+  for (const u of utterances) {
+    if (!speakerLabels.includes(u.spk.label)) {
+      speakerLabels.push(u.spk.label);
+    }
+  }
+
+  // speaker 수와 participant 수가 같을 때만 순서 매칭
+  if (speakerLabels.length === participants.length) {
+    for (let i = 0; i < speakerLabels.length; i++) {
+      map.set(speakerLabels[i], participants[i]);
+    }
+  }
+
+  return map;
+}

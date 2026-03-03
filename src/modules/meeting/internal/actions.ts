@@ -54,6 +54,7 @@ export async function createMeeting(formData: FormData) {
   const fileName = formData.get("fileName") as string;
   const mimeType = formData.get("mimeType") as string;
   const fileSize = formData.get("fileSize") as string;
+  const fileHash = formData.get("fileHash") as string | null;
 
   await requireWorkspaceMembership(user.id, workspaceId);
 
@@ -61,6 +62,27 @@ export async function createMeeting(formData: FormData) {
     return redirect(
       `/workspaces/${workspaceId}/meetings/new?error=제목을 입력해주세요`
     );
+  }
+
+  // 중복 업로드 감지: 파일 해시 + 동일 회의일 조합
+  if (fileHash) {
+    const duplicate = await prisma.meeting.findFirst({
+      where: {
+        workspaceId,
+        meetingDate: new Date(meetingDate),
+        deletedAt: null,
+        assets: {
+          some: { fileHash },
+        },
+      },
+      select: { id: true, title: true },
+    });
+
+    if (duplicate) {
+      return redirect(
+        `/workspaces/${workspaceId}/meetings/new?error=동일한 파일이 같은 회의일(${meetingDate})에 이미 업로드되어 있습니다: "${duplicate.title}"`
+      );
+    }
   }
 
   const meeting = await prisma.meeting.create({
@@ -80,6 +102,7 @@ export async function createMeeting(formData: FormData) {
               fileName,
               mimeType,
               fileSize: BigInt(fileSize || "0"),
+              fileHash,
             },
           }
         : undefined,

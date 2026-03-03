@@ -35,13 +35,15 @@ const MAX_SIZE = 500 * 1024 * 1024;
 export function MeetingForm({ workspaceId, error }: MeetingFormProps) {
   const [mode, setMode] = useState<Mode>("upload");
   const [file, setFile] = useState<File | null>(null);
+  const [fileHash, setFileHash] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [fileError, setFileError] = useState<string | null>(null);
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0];
     setFileError(null);
+    setFileHash(null);
 
     if (!selected) {
       setFile(null);
@@ -61,6 +63,13 @@ export function MeetingForm({ workspaceId, error }: MeetingFormProps) {
     }
 
     setFile(selected);
+
+    // SHA-256 해시 계산
+    const buffer = await selected.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hash = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+    setFileHash(hash);
   }
 
   async function handleUploadSubmit(formData: FormData) {
@@ -115,6 +124,7 @@ export function MeetingForm({ workspaceId, error }: MeetingFormProps) {
       formData.set("fileName", file.name);
       formData.set("mimeType", file.type);
       formData.set("fileSize", String(file.size));
+      if (fileHash) formData.set("fileHash", fileHash);
 
       await createMeeting(formData);
     } catch (err) {
