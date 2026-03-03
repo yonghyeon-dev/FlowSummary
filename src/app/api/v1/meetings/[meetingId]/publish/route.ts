@@ -4,6 +4,7 @@ import { requireWorkspaceMembership } from "@/modules/workspace";
 import { getMeetingDetail, transitionMeetingStatus } from "@/modules/meeting";
 import { MeetingStatus, MembershipRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { scheduleAssignmentNotifications } from "@/modules/notification";
 
 export async function POST(
   _req: NextRequest,
@@ -41,6 +42,9 @@ export async function POST(
       MeetingStatus.REVIEW_NEEDED,
       MeetingStatus.PUBLISHED
     );
+
+    // 게시 시 담당자에게 알림 발송
+    await scheduleAssignmentNotifications(meetingId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

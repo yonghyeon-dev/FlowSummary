@@ -6,9 +6,9 @@
 ## 모델 스택
 | 레이어 | 기술 |
 |--------|------|
-| Frontend | Next.js 15 (App Router) + shadcn/ui |
+| Frontend | Next.js 16 (App Router) + shadcn/ui |
 | Auth | Supabase Auth (Google OAuth + 이메일) |
-| DB | Supabase PostgreSQL + Prisma (12 엔터티) |
+| DB | Supabase PostgreSQL + Prisma 6 (13 엔터티) |
 | Storage | Supabase Storage (사전 서명 URL) |
 | Worker | Trigger.dev v3 |
 | STT | VITO API (리턴제로) |
@@ -63,8 +63,8 @@ extracted → confirmed → in_progress → done
 
 ## 현재 진행 상태
 - [x] Phase 0: 프로젝트 부트스트랩
-- [ ] Phase 1: 인증 & 워크스페이스
-- [ ] Phase 2: 회의 업로드 & 전사 파이프라인
-- [ ] Phase 3: AI 요약 & 액션아이템 검수
+- [x] Phase 1: 인증 & 워크스페이스
+- [x] Phase 2: 회의 업로드 & 전사 파이프라인
+- [x] Phase 3: AI 요약 & 액션아이템 검수
 - [ ] Phase 4: 알림 & 대시보드
 - [ ] Phase 5: 운영 기능 & 베타
