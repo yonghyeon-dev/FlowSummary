@@ -20,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
@@ -32,16 +32,22 @@ jobs:
 
       # Gate 2: Lint
       - name: "Gate 2: Lint"
-        run: npx next lint
+        run: npm run lint
 
       # Gate 3: Prisma
       - name: "Gate 3: Prisma Validate"
         run: npx prisma validate
         if: hashFiles('prisma/schema.prisma') != ''
+        env:
+          DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
+          DIRECT_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
 
       - name: "Gate 3: Prisma Generate"
         run: npx prisma generate
         if: hashFiles('prisma/schema.prisma') != ''
+        env:
+          DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
+          DIRECT_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
 
       # Gate 4: Test
       - name: "Gate 4: Test"
@@ -53,6 +59,8 @@ jobs:
         run: npx next build
         env:
           SKIP_ENV_VALIDATION: true
+          DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
+          DIRECT_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
 
   security:
     name: Security Audit
@@ -65,7 +73,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
