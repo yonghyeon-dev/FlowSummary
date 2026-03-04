@@ -1,10 +1,10 @@
 import { task } from "@trigger.dev/sdk/v3";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { prisma } from "@/lib/prisma";
 import { ActionItemPriority } from "@prisma/client";
 
 const PROMPT_VERSION = "v1.0";
-const MODEL_ID = "claude-sonnet-4-20250514";
+const MODEL_ID = "gemini-2.5-flash";
 
 interface SummaryOutput {
   summary: string;
@@ -200,34 +200,62 @@ export const summarizeMeeting = task({
 
     const meetingDateStr = new Date(meeting.meetingDate).toISOString().split("T")[0];
 
-    // 2. Claude API 호출
-    const anthropic = new Anthropic();
+    // 2. Gemini API 호출
+    const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-    const response = await anthropic.messages.create({
+    const response = await genai.models.generateContent({
       model: MODEL_ID,
-      max_tokens: 4096,
-      messages: [
-        {
-          role: "user",
-          content: buildPrompt(transcript, meetingDateStr, meeting.participants),
+      contents: buildPrompt(transcript, meetingDateStr, meeting.participants),
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "object",
+          properties: {
+            summary: { type: "string" },
+            keyDecisions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  decision: { type: "string" },
+                  context: { type: "string" },
+                },
+                required: ["decision", "context"],
+              },
+            },
+            actionItems: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  assigneeHint: { type: "string" },
+                  priority: { type: "string", enum: ["HIGH", "MEDIUM", "LOW"] },
+                  dueDateRaw: { type: "string" },
+                  confidence: { type: "number" },
+                  sourceText: { type: "string" },
+                },
+                required: ["title", "priority", "confidence", "sourceText"],
+              },
+            },
+          },
+          required: ["summary", "keyDecisions", "actionItems"],
         },
-      ],
+      },
     });
 
-    const textBlock = response.content.find((b) => b.type === "text");
-    if (!textBlock || textBlock.type !== "text") {
-      throw new Error("Claude API 응답에 텍스트가 없습니다");
+    const responseText = response.text;
+    if (!responseText) {
+      throw new Error("Gemini API 응답에 텍스트가 없습니다");
     }
 
     // 3. JSON 파싱 + 스키마 검증
     let parsed: unknown;
     try {
-      // JSON 블록 추출 (```json ... ``` 또는 순수 JSON)
-      const jsonMatch = textBlock.text.match(/```json\s*([\s\S]*?)\s*```/);
-      const jsonStr = jsonMatch ? jsonMatch[1] : textBlock.text;
-      parsed = JSON.parse(jsonStr);
+      parsed = JSON.parse(responseText);
     } catch {
-      throw new Error(`AI 출력 JSON 파싱 실패: ${textBlock.text.substring(0, 200)}`);
+      throw new Error(`AI 출력 JSON 파싱 실패: ${responseText.substring(0, 200)}`);
     }
 
     const output = validateOutput(parsed);
@@ -243,9 +271,9 @@ export const summarizeMeeting = task({
         summary: output.summary,
         keyDecisions: output.keyDecisions,
         modelId: MODEL_ID,
-        modelVersion: response.model,
+        modelVersion: MODEL_ID,
         promptVersion: PROMPT_VERSION,
-        rawModelOutput: JSON.parse(JSON.stringify(response)),
+        rawModelOutput: JSON.parse(JSON.stringify({ text: responseText, usageMetadata: response.usageMetadata })),
         version: newVersion,
       },
     });
