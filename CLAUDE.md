@@ -19,7 +19,13 @@
 | `code-quality.md` | 컴포넌트 재사용, 하드코딩 금지, UTF-8 |
 | `workflow.md` | WI 관리, 브랜치 컨벤션, RALF Loop, CI 게이트 |
 
+## 배포 규칙 (절대)
+- **`vercel --prod` CLI 직접 배포 금지** — Git push → Vercel 자동 배포만 허용
+- **긴급 수정이라도 프로세스 예외 없음**: 브랜치 → CI → PR → 머지 → 자동 배포
+- 위반 시: 사용자에게 즉시 보고하고 롤백 방법 안내
+
 ## 작업 전 체크리스트
+- [ ] **브랜치 생성**: main에서 직접 작업 금지
 - [ ] 경계 분리: "이 코드의 경계는 무엇인가?" 정의
 - [ ] 상태 머신: Meeting/ActionItem 전이 규칙 확인
 - [ ] 보안: API Route에 인증 + workspace_id 검사
