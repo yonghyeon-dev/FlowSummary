@@ -1,5 +1,4 @@
 import { createWorkspace } from "@/modules/workspace";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -9,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { SubmitButton } from "./submit-button";
 
 export default async function NewWorkspacePage({
   searchParams,
@@ -41,7 +41,7 @@ export default async function NewWorkspacePage({
                 autoFocus
               />
             </div>
-            <Button type="submit">만들기</Button>
+            <SubmitButton />
           </form>
         </CardContent>
       </Card>
