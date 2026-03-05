@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { updateSummaryText } from "@/modules/meeting";
 
 interface KeyDecision {
   decision: string;
@@ -44,12 +45,15 @@ export function SummaryReview({
 
   async function handleSave() {
     setSaving(true);
-    // 요약 텍스트 수정은 직접 DB 업데이트 (server action)
-    // 간단한 구현: PATCH API는 Phase 후반에 추가 가능
-    // 현재는 UI만 준비
-    setSaving(false);
-    setEditing(false);
-    router.refresh();
+    try {
+      await updateSummaryText(summary.id, text);
+      setEditing(false);
+      router.refresh();
+    } catch {
+      alert("요약 저장에 실패했습니다");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (

@@ -156,9 +156,6 @@ function MemberRow({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {currentUserRole === MembershipRole.OWNER && (
-                <SelectItem value="ADMIN">Admin</SelectItem>
-              )}
               <SelectItem value="ADMIN">Admin</SelectItem>
               <SelectItem value="MEMBER">Member</SelectItem>
             </SelectContent>
