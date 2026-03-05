@@ -5,6 +5,7 @@ import {
   isValidTransition,
   transitionMeetingStatus,
 } from "@/modules/meeting";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const VITO_API_BASE = "https://openapi.vito.ai";
 
@@ -105,15 +106,30 @@ async function pollTranscription(
 export const transcribeMeeting = task({
   id: "transcribe-meeting",
   maxDuration: 1800,
-  run: async (payload: { meetingId: string; fileUrl: string }) => {
-    const { meetingId, fileUrl } = payload;
+  run: async (payload: { meetingId: string }) => {
+    const { meetingId } = payload;
 
-    // 1. Meeting 상태 → PROCESSING
+    // 1. Meeting + Asset 조회
     const meeting = await prisma.meeting.findUnique({
       where: { id: meetingId },
+      include: { assets: { take: 1 } },
     });
 
     if (!meeting) throw new Error(`Meeting not found: ${meetingId}`);
+
+    const asset = meeting.assets[0];
+    if (!asset) throw new Error(`No asset found for meeting: ${meetingId}`);
+
+    // 2. Supabase Storage signed download URL 생성 (1시간 유효)
+    const supabase = createAdminClient();
+    const { data: urlData, error: urlError } = await supabase.storage
+      .from("meeting-assets")
+      .createSignedUrl(asset.storagePath, 3600);
+
+    if (urlError || !urlData?.signedUrl) {
+      throw new Error(`파일 다운로드 URL 생성 실패: ${urlError?.message}`);
+    }
+    const fileUrl = urlData.signedUrl;
 
     if (isValidTransition(meeting.status, MeetingStatus.PROCESSING)) {
       await transitionMeetingStatus(

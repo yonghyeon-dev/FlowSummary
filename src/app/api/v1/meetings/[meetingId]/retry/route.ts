@@ -54,7 +54,6 @@ export async function POST(
     if (!meeting.isTextPaste && meeting.assets[0]) {
       await tasks.trigger<typeof transcribeMeeting>("transcribe-meeting", {
         meetingId,
-        fileUrl: meeting.assets[0].storagePath,
       });
     }
 
