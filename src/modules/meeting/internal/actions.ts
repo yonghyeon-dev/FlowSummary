@@ -8,6 +8,8 @@ import { requireWorkspaceMembership } from "@/modules/workspace";
 import { MeetingStatus } from "@prisma/client";
 import { isAllowedFile, isWithinSizeLimit } from "./constants";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { tasks } from "@trigger.dev/sdk/v3";
+import type { transcribeMeeting } from "@/trigger/transcribe";
 
 export async function getUploadUrl(
   workspaceId: string,
@@ -108,6 +110,13 @@ export async function createMeeting(formData: FormData) {
         : undefined,
     },
   });
+
+  // 파일 업로드된 회의 → 자동 전사 트리거
+  if (storagePath) {
+    await tasks.trigger<typeof transcribeMeeting>("transcribe-meeting", {
+      meetingId: meeting.id,
+    });
+  }
 
   revalidatePath(`/workspaces/${workspaceId}/meetings`);
   redirect(`/workspaces/${workspaceId}/meetings/${meeting.id}`);
