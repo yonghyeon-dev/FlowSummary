@@ -7,7 +7,7 @@ import { requireUser } from "@/modules/auth";
 import { requireWorkspaceMembership } from "@/modules/workspace";
 import { MeetingStatus } from "@prisma/client";
 import { isAllowedFile, isWithinSizeLimit } from "./constants";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function getUploadUrl(
   workspaceId: string,
@@ -26,7 +26,7 @@ export async function getUploadUrl(
     throw new Error("파일 크기가 500MB를 초과합니다");
   }
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const storagePath = `${workspaceId}/${Date.now()}-${fileName}`;
 
   const { data, error } = await supabase.storage
