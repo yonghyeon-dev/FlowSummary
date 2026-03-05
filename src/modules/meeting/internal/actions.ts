@@ -155,3 +155,26 @@ export async function createTextMeeting(formData: FormData) {
   revalidatePath(`/workspaces/${workspaceId}/meetings`);
   redirect(`/workspaces/${workspaceId}/meetings/${meeting.id}`);
 }
+
+export async function updateSummaryText(
+  summaryId: string,
+  summaryText: string
+) {
+  const user = await requireUser();
+
+  const summary = await prisma.meetingSummary.findUniqueOrThrow({
+    where: { id: summaryId },
+    select: { meeting: { select: { workspaceId: true, id: true } } },
+  });
+
+  await requireWorkspaceMembership(user.id, summary.meeting.workspaceId);
+
+  await prisma.meetingSummary.update({
+    where: { id: summaryId },
+    data: { summary: summaryText },
+  });
+
+  revalidatePath(
+    `/workspaces/${summary.meeting.workspaceId}/meetings/${summary.meeting.id}`
+  );
+}

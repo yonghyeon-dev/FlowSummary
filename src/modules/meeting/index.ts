@@ -2,6 +2,7 @@ export {
   createMeeting,
   createTextMeeting,
   getUploadUrl,
+  updateSummaryText,
 } from "./internal/actions";
 export {
   getMeetingsByWorkspace,
